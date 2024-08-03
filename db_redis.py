@@ -2,7 +2,9 @@ import json
 
 from redis import Redis
 
-conn = Redis(host='127.0.0.1', port=6379, db=1)
+from config import redisInfo
+
+conn = Redis(host=redisInfo['host'], port=redisInfo['port'], db=1)
 prefix = "welcome_"
 
 
@@ -40,3 +42,9 @@ def restrict_word_set(type_str, val):
     key = prefix + "restrict_word_" + str(type_str)
 
     conn.set(key, json.dumps(val), 3600)  # 1小时
+
+
+def clearFakeMsgQueue(data):
+    key = prefix + ":queue:clearFakeMsg"
+
+    conn.rpush(key, json.dumps(data))

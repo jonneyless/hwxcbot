@@ -198,3 +198,12 @@ def restrict_word_get(type_str, flag=False):
         db_redis.restrict_word_set(type_str, restrict_words)
 
     return restrict_words
+
+
+def getMsgsByInfo(info):
+    opm = OPMysql()
+    sql = "select chat_id, user_id, message_id from msg where flag = 1 and info = '%s'" % info
+    result = opm.op_select_all(sql)
+    opm.dispose()
+
+    return result

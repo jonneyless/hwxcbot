@@ -171,7 +171,7 @@ async def index(bot, event, sender_id, text, fwd_from):
         if text[0:5] == "/mgc+":
             word = text.replace("/mgc+", "")
 
-            pattern_name = "(.+)\+(.+)"
+            pattern_name = "(.+)\\+(.+)"
             result = re.match(pattern_name, word)
             if result is None:
                 await event.reply(message="命令有误，请去除特殊符号和空格后重新输入")
@@ -197,3 +197,30 @@ async def index(bot, event, sender_id, text, fwd_from):
         else:
             if text.find("mgc") != -1:
                 await event.reply(message="命令有误，请去除特殊符号和空格后重新输入")
+            else:
+                if len(text) >= 6:
+                    msgs = db.getMsgsByInfo(text)
+                    if len(msgs) > 0:
+                        users = {}
+                        groups = {}
+
+                        data = {}
+                        for msg in msgs:
+                            users[msg['user_id']] = msg['user_id']
+                            groups[msg['chat_id']] = msg['chat_id']
+
+                            if msg['chat_id'] not in data:
+                                data[msg['chat_id']] = {}
+
+                            if msg['user_id'] not in data[msg['chat_id']]:
+                                data[msg['chat_id']][msg['user_id']] = []
+
+                            data[msg['chat_id']][msg['user_id']].append(msg['message_id'])
+
+                        text_basic = "待处理用户： %s个\n" % len(users)
+                        text_basic += "待处理群组：%s个\n" % len(groups)
+                        text_basic += "待删除消息: %s条\n" % len(msgs)
+                        text_basic += "状态：\n"
+
+                        m = await event.reply(message=text_basic + "执行中...")
+                        db_redis.clearFakeMsgQueue({"type": "delete", "official": official_tg_id, 'notice_id': m.id, 'notice': text_basic, 'userIds': users, "data": data})

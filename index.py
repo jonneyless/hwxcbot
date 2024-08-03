@@ -1,6 +1,9 @@
+import re
+
 from telethon import TelegramClient, events
 
 import db
+import db_redis
 import handle_message
 from assist import get_current_time
 from config import *
@@ -65,6 +68,26 @@ async def callback(event):
         await db.cheat_special_save(args["user_tg_id"], "汇旺巡查机器人添加", sender_id)
         await event.answer(message="添加成功", alert=True)
         return
+
+    if info == "cheat_from_msg":
+        async with bot.conversation(event.sender_id) as conv:
+            await conv.send_message('请输入原因!')
+            response = conv.get_response()
+            response = await response
+
+            msg = await event.get_message()
+            text = msg.text
+
+            patten = re.compile(r"\[(\d+)]")
+            userIds = patten.findall(text)
+            reason = response.text
+
+            for userId in userIds:
+                await db.cheat_special_save(userId, reason, sender_id)
+
+            await bot.edit_message(entity=event.chat_id, message=msg, text=text, buttons=None)
+            m = await bot.send_message(entity=event.chat_id, message="已加入骗子库，正在尝试从所有群中踢出…")
+            db_redis.clearFakeMsgQueue({"type": "kick", "official": sender_id, 'notice_id': m.id, 'notice': "", 'userIds': userIds, 'data': userIds})
 
 
 if __name__ == '__main__':

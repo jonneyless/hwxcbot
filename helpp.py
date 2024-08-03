@@ -30,7 +30,7 @@ def has_restrict_word(text, type_str):
 
     restrict_words = db.restrict_word_get(type_str)
 
-    pattern_name = "(.+)\(\.\*\)(.+)"
+    pattern_name = "(.+)\\(\\.\\*\\)(.+)"
 
     # type_str
     # 1msg, 9username, 4fullname
