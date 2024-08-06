@@ -48,3 +48,9 @@ def clearFakeMsgQueue(data):
     key = prefix + ":queue:clearFakeMsg"
 
     conn.rpush(key, json.dumps(data))
+
+
+def updateChatPhoto(operatorId, noticeId, photo):
+    key = prefix + ":chat:photo:update"
+
+    conn.rpush(key, json.dumps({'operatorId': operatorId, 'noticeId': noticeId, 'photo': photo}))
