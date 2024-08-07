@@ -42,15 +42,3 @@ def restrict_word_set(type_str, val):
     key = prefix + "restrict_word_" + str(type_str)
 
     conn.set(key, json.dumps(val), 3600)  # 1小时
-
-
-def clearFakeMsgQueue(data):
-    key = prefix + ":queue:clearFakeMsg"
-
-    conn.rpush(key, json.dumps(data))
-
-
-def updateChatPhoto(operatorId, noticeId, photo):
-    key = prefix + ":chat:photo:update"
-
-    conn.rpush(key, json.dumps({'operatorId': operatorId, 'noticeId': noticeId, 'photo': photo}))

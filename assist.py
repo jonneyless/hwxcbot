@@ -156,3 +156,11 @@ def is_address(text):
         flag = True
 
     return flag
+
+
+def get_chinese_len(char):
+    count = 0
+    for item in char:
+        if 0x4E00 <= ord(item) <= 0x9FA5:
+            count += 1
+    return count

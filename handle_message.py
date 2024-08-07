@@ -3,8 +3,7 @@ import re
 import db
 import db_redis
 import helpp
-from assist import is_address, create_index
-from config import upload_dir
+from assist import is_address, create_index, get_chinese_len
 
 
 async def kick_and_delete_operation(user_tg_id, groups, official_tg_id, username, fullname, message_id, special=True):
@@ -199,18 +198,7 @@ async def index(bot, event, sender_id, text, fwd_from):
             if text.find("mgc") != -1:
                 await event.reply(message="命令有误，请去除特殊符号和空格后重新输入")
 
-        if text == '更新群头像':
-            async with bot.conversation(event.sender_id) as conv:
-                await conv.send_message('请上传要更新的头像文件!')
-                response = conv.get_response()
-                response = await response
-                fileName = upload_dir + '/' + str(response.photo.id) + '.jpg'
-                await bot.download_media(response, fileName)
-                msg = await response.reply("正在处理，请稍等……")
-                db_redis.updateChatPhoto(event.sender_id, msg.id, fileName)
-            return
-
-        if len(text) >= 6:
+        if get_chinese_len(text) >= 6:
             msgs = db.getMsgsByInfo(text)
             if len(msgs) > 0:
                 users = {}
@@ -235,4 +223,4 @@ async def index(bot, event, sender_id, text, fwd_from):
                 text_basic += "状态：\n"
 
                 m = await event.reply(message=text_basic + "执行中...")
-                db_redis.clearFakeMsgQueue({"type": "delete", "official": official_tg_id, 'notice_id': m.id, 'notice': text_basic, 'userIds': users, "data": data})
+                db_redis.hwxcData_set({"type": "delete", "official": official_tg_id, 'notice_id': m.id, 'notice': text_basic, 'userIds': users, "data": data})
