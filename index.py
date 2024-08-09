@@ -87,7 +87,7 @@ async def callback(event):
 
             await bot.edit_message(entity=event.chat_id, message=msg, text=text, buttons=None)
             m = await bot.send_message(entity=event.chat_id, message="已加入骗子库，正在尝试从所有群中踢出…")
-            db_redis.clearFakeMsgQueue({"type": "kick", "official": sender_id, 'notice_id': m.id, 'notice': "", 'userIds': userIds, 'data': userIds})
+            db_redis.hwxcData_set({"type": "kick", "official": sender_id, 'notice_id': m.id, 'notice': "", 'userIds': userIds, 'data': userIds})
 
 
 if __name__ == '__main__':

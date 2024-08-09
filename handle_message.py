@@ -200,12 +200,18 @@ async def index(bot, event, sender_id, text, fwd_from):
 
         if get_chinese_len(text) >= 6:
             msgs = db.getMsgsByInfo(text)
-            if len(msgs) > 0:
+            msgCount = len(msgs)
+            if msgCount > 0:
+                officialTgIds = await db.official_tg_ids()
                 users = {}
                 groups = {}
 
                 data = {}
                 for msg in msgs:
+                    if msg['user_id'] in officialTgIds:
+                        msgCount = msgCount - 1
+                        continue
+
                     users[msg['user_id']] = msg['user_id']
                     groups[msg['chat_id']] = msg['chat_id']
 
@@ -217,10 +223,11 @@ async def index(bot, event, sender_id, text, fwd_from):
 
                     data[msg['chat_id']][msg['user_id']].append(msg['message_id'])
 
-                text_basic = "待处理用户： %s个\n" % len(users)
-                text_basic += "待处理群组：%s个\n" % len(groups)
-                text_basic += "待删除消息: %s条\n" % len(msgs)
-                text_basic += "状态：\n"
+                if msgCount > 0:
+                    text_basic = "待处理用户： %s个\n" % len(users)
+                    text_basic += "待处理群组：%s个\n" % len(groups)
+                    text_basic += "待删除消息: %s条\n" % len(msgs)
+                    text_basic += "状态：\n"
 
-                m = await event.reply(message=text_basic + "执行中...")
-                db_redis.hwxcData_set({"type": "delete", "official": official_tg_id, 'notice_id': m.id, 'notice': text_basic, 'userIds': users, "data": data})
+                    m = await event.reply(message=text_basic + "执行中...")
+                    db_redis.hwxcData_set({"type": "delete", "official": official_tg_id, 'notice_id': m.id, 'notice': text_basic, 'userIds': users, "data": data})

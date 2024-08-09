@@ -53,6 +53,22 @@ async def official_one(user_tg_id):
     return result
 
 
+async def official_tg_ids():
+    opm = OPMysql()
+
+    sql = "select tg_id from offical_user"
+
+    result = opm.op_select_all(sql)
+
+    opm.dispose()
+
+    tgIds = []
+    for user in result:
+        tgIds.append(user['tg_id'])
+
+    return tgIds
+
+
 async def white_one(user_tg_id):
     opm = OPMysql()
 
