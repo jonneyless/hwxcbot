@@ -1,5 +1,4 @@
 import re
-from asyncio import futures
 
 from telethon import TelegramClient
 
@@ -123,6 +122,17 @@ async def index(bot: TelegramClient, event, sender_id, text, fwd_from):
         else:
             await event.reply(message="该用户为隐私用户")
             return
+    elif event.message.reply_to is not None:
+        replyMessages = await bot.get_messages(event.chat_id, ids=[event.message.reply_to.reply_to_msg_id])
+        if replyMessages is not None and len(replyMessages) > 0:
+            replyMessage = replyMessages[0]
+            pattern = r'用户tgid: (\d+)'
+            result = re.match(pattern, replyMessage.message)
+            if result is not None:
+                userTgId = result.group(1)
+
+                await db.cheat_update(userTgId, text)
+                await db.cheat_special_update(userTgId, text)
     else:
         if text == "/start":
             await event.respond(message="欢迎使用巡查助理")
@@ -227,20 +237,10 @@ async def index(bot: TelegramClient, event, sender_id, text, fwd_from):
                     data[msg['chat_id']][msg['user_id']].append(msg['message_id'])
 
                 if msgCount > 0:
-                    async with bot.conversation(event.chat_id, timeout=60) as conv:
-                        try:
-                            await conv.send_message("待处理用户： %s个，请输入处理原因" % len(users))
-                            response = await conv.get_response()
+                    text_basic = "待处理用户： %s个\n" % len(users)
+                    text_basic += "待处理群组：%s个\n" % len(groups)
+                    text_basic += "待删除消息: %s条\n" % len(msgs)
+                    text_basic += "状态：\n"
 
-                            text_basic = "待处理用户： %s个\n" % len(users)
-                            text_basic += "待处理群组：%s个\n" % len(groups)
-                            text_basic += "待删除消息: %s条\n" % len(msgs)
-                            text_basic += "处理原因：%s" % response.text
-                            text_basic += "状态：\n"
-
-                            m = await event.reply(message=text_basic + "执行中...")
-                            db_redis.hwxcData_set({"type": "delete", "official": official_tg_id, 'notice_id': m.id, 'notice': text_basic, 'reason': response.text, 'userIds': users, "data": data})
-
-                        except futures.TimeoutError as e:
-                            return await event.respond('未收到处理原因')
-                            pass
+                    m = await event.reply(message=text_basic + "执行中...")
+                    db_redis.hwxcData_set({"type": "delete", "official": official_tg_id, 'notice_id': m.id, 'notice': text_basic, 'userIds': users, "data": data})

@@ -124,6 +124,22 @@ async def cheat_save(user_tg_id, reason, official_id):
     return result
 
 
+async def cheat_update(user_tg_id, reason):
+    obj = await cheat_one(user_tg_id)
+    if obj is None:
+        return
+
+    opm = OPMysql()
+
+    sql = "update cheats set reason = %s where tgid = %s" % (reason, user_tg_id)
+
+    result = opm.op_update(sql)
+
+    opm.dispose()
+
+    return result
+
+
 # ======================================================================================================================
 
 async def cheat_special_one(user_tg_id):
@@ -147,6 +163,22 @@ async def cheat_special_save(user_tg_id, reason, official_id):
 
     sql = "insert into cheats_special(tgid, created_at, reason, admin_id, official_id) values('%s', '%s', '%s', '%s', '%s')" % (
         user_tg_id, get_current_time(), reason, "-1", official_id)
+
+    result = opm.op_update(sql)
+
+    opm.dispose()
+
+    return result
+
+
+async def cheat_special_update(user_tg_id, reason):
+    obj = await cheat_special_one(user_tg_id)
+    if obj is None:
+        return
+
+    opm = OPMysql()
+
+    sql = "update cheats_special set reason = %s where tgid = %s" % (reason, user_tg_id)
 
     result = opm.op_update(sql)
 
